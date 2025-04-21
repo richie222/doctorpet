@@ -10,7 +10,7 @@ COPY . .
 RUN npm ci
 
 ENV PORT=8000
-
+# Install app dependencies
 EXPOSE 8000
 
 CMD [ "npm", "run", "start" ]
