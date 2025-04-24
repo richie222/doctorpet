@@ -1,43 +1,85 @@
+//imports
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var dbRouter = require('./routes/db');
+// Import routes
+var indexRouter = require('./src/routes/index');
+var dbRouter = require('./src/routes/db');
+const authRouter = require('./src/routes/auth');
+
+// Import config
+const {sessionCookie, poolConnection} = require('./src/config/dababase');
 
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+app.use(helmet());
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/dbtest', dbRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// Limitar intentos de login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5 // 5 intentos
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// Middleware configurations
+const configureMiddleware = (app) => {
+  // View engine setup
+  app.set('views', path.join(__dirname, 'views'));
+  app.set('view engine', 'pug');
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+  // General middleware
+  app.use(logger('dev'));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser());
+  app.use(express.static(path.join(__dirname, 'public')));
 
-module.exports = app;
+  // Session middleware
+  app.use(session({
+    store: new pgSession({
+      pool: poolConnection,
+      tableName: 'sessions'
+    }),
+    ...sessionCookie
+  }));
+};
+
+// Route configurations
+const configureRoutes = (app) => {
+  app.use('/', indexRouter);
+  app.use('/db', dbRouter);
+  app.use('/auth', authRouter);
+  //app.use('/auth/login', loginLimiter);
+};
+
+// Error handling configurations
+const configureErrorHandling = (app) => {
+  // 404 handler
+  app.use((req, res, next) => {
+    next(createError(404));
+  });
+
+  // Global error handler
+  app.use((err, req, res, next) => {
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    res.status(err.status || 500);
+    res.render('error');
+  });
+};
+
+// Initialize application
+const initializeApp = () => {
+  configureMiddleware(app);
+  configureRoutes(app);
+  configureErrorHandling(app);
+  return app; 
+};
+
+module.exports = initializeApp();
