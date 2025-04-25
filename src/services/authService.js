@@ -15,18 +15,19 @@ class AuthService {
     return { user, passwordMatch: isValidPassword };
   }
 
-  async register(email, password) {
+  async register(email, password, profileImage) {
     const existingUser = await userModel.findUserByEmail(email);
     if (existingUser) {
       throw new Error('El email ya está registrado');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await userModel.createUser(email, hashedPassword);
+    const user = await userModel.createUser(email, hashedPassword, profileImage);
     
     const { password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
 }
 
-module.exports = new AuthService();
+module.exports = new AuthService()

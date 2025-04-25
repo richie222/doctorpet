@@ -40,6 +40,11 @@ const configureMiddleware = (app) => {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
+  // Para imágenes de perfil
+  app.use('/uploads/profile-images', express.static(path.join(__dirname, 'src/public/uploads/profile-images')));
+  // Para la imagen por defecto
+  app.use('/multimedia', express.static(path.join(__dirname, 'src/multimedia')));
+
   // Session middleware
   app.use(session({
     store: new pgSession({
@@ -55,8 +60,8 @@ const configureRoutes = (app) => {
   app.use('/', indexRouter);
   app.use('/db', dbRouter);
   app.use('/auth', authRouter);
-  //app.use('/auth/login', loginLimiter);
 };
+
 
 // Error handling configurations
 const configureErrorHandling = (app) => {

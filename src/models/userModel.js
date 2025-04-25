@@ -1,10 +1,10 @@
 const {poolConnection} = require('../config/dababase'); // Asegúrate de exportar el pool en database.js
 
 class UserModel {
-  async createUser(email, hashedPassword) {
+  async createUser(email, hashedPassword, profileImage) {
     const result = await poolConnection.query(
-      'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email, created_at',
-      [email, hashedPassword]
+      'INSERT INTO users (email, password, profile_image) VALUES ($1, $2, $3) RETURNING id, email, profile_image, created_at',
+      [email, hashedPassword, profileImage]
     );
     return result.rows[0];
   }
@@ -24,6 +24,7 @@ class UserModel {
     );
     return result.rows[0];
   }
+
 }
 
 module.exports = new UserModel();

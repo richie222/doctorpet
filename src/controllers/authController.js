@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator');
 const authService = require('../services/authService');
+const fs = require('fs').promises;
+const path = require('path');
 
 class AuthController {
   async login(req, res) {
@@ -42,17 +44,36 @@ class AuthController {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        // Si hay un archivo subido, eliminarlo
+        if (req.file) {
+          await fs.unlink(req.file.path);
+        }
         return res.status(400).json({ errors: errors.array() });
       }
 
       const { email, password } = req.body;
-      const user = await authService.register(email, password);
+      const profileImage = req.file ? req.file.filename : null;
 
+      const user = await authService.register(email, password, profileImage);
+
+      // Si todo va bien, devolver respuesta
       res.status(201).json({
         message: 'Usuario registrado exitosamente',
-        user
+        user: {
+          ...user,
+          profileImageUrl: profileImage ? `/uploads/profile-images/${profileImage}` : null
+        }
       });
+
     } catch (error) {
+      // Si hay error al subir la imagen, eliminarla
+      if (req.file) {
+        const fs = require('fs');
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.error('Error al eliminar archivo:', err);
+        });
+      }
+
       res.status(400).json({
         error: error.message
       });
@@ -74,6 +95,7 @@ class AuthController {
     }
     res.json({ user: req.session.user });
   }
+
 }
 
 module.exports = new AuthController();
