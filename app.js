@@ -8,6 +8,7 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 
 
 // Import routes
