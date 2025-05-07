@@ -9,6 +9,7 @@ const pgSession = require('connect-pg-simple')(session);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+require ('dotenv').config();
 
 
 // Import routes
@@ -57,8 +58,6 @@ const configureMiddleware = (app) => {
   }));
 };
 
-var allowlist = ['https://6000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev', 'https://9000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev','http://localhost:3000']
-
 // Set middleware of CORS 
 app.use(
   cors({
@@ -83,15 +82,52 @@ const configureRoutes = (app) => {
 const configureErrorHandling = (app) => {
   // 404 handler
   app.use((req, res, next) => {
-    next(createError(404));
+    next(createError(404, 'Ruta no encontrada'));
   });
 
   // Global error handler
   app.use((err, req, res, next) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-    res.status(err.status || 500);
-    res.render('error');
+    // Establecer el código de estado
+    const statusCode = err.status || 500;
+
+    // Log del error en producción
+    if (process.env.NODE_ENV === 'production') {
+      console.error(new Date().toISOString(), {
+        status: statusCode,
+        message: err.message,
+        stack: err.stack,
+        path: req.originalUrl
+      });
+    }
+
+    // Determinar el mensaje de error según el ambiente
+    const errorMessage = process.env.NODE_ENV === 'production'
+      ? statusCode === 404 
+        ? 'Ruta no encontrada'
+        : 'Error interno del servidor'
+      : err.message;
+
+    // Responder según el tipo de contenido aceptado
+    if (req.accepts('json')) {
+      // Respuesta JSON para API
+      res.status(statusCode).json({
+        success: false,
+        status: statusCode,
+        message: errorMessage,
+        // Solo incluir detalles adicionales en desarrollo
+        ...(process.env.NODE_ENV === 'development' && {
+          error: err,
+          stack: err.stack
+        })
+      });
+    } else {
+      // Respuesta HTML
+      res.status(statusCode);
+      res.render('error', {
+        message: errorMessage,
+        error: process.env.NODE_ENV === 'development' ? err : {}
+      });
+    }
   });
 };
 
