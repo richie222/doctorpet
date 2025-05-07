@@ -8,7 +8,7 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const cors = require('cors');
+
 
 // Import routes
 var indexRouter = require('./src/routes/index');
@@ -56,27 +56,19 @@ const configureMiddleware = (app) => {
   }));
 };
 
-// Set middleware of CORS 
-app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "'https://6000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev', 'https://9000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev', 'http://localhost:3000'"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,CONNECT,TRACE"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Content-Type-Options, Accept, X-Requested-With, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
-  );
-  res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader("Access-Control-Allow-Private-Network", true);
-  //  Firefox caps this at 24 hours (86400 seconds). Chromium (starting in v76) caps at 2 hours (7200 seconds). The default value is 5 seconds.
-  res.setHeader("Access-Control-Max-Age", 7200);
+var allowlist = ['https://6000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev', 'https://9000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev','http://localhost:3000']
 
-  next();
-});
+// Set middleware of CORS 
+app.use(
+  cors({
+    origin: allowlist,
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'device-remember-token', 'Access-Control-Allow-Origin', 'Origin', 'Accept'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  })
+);
 
 // Route configurations
 const configureRoutes = (app) => {
