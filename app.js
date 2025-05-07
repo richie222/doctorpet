@@ -62,7 +62,7 @@ var allowlist = ['https://6000-firebase-studio-1746627507940.cluster-f4iwdviaqvc
 // Set middleware of CORS 
 app.use(
   cors({
-    origin: allowlist,
+    origin: "*",
     methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'device-remember-token', 'Access-Control-Allow-Origin', 'Origin', 'Accept'],
