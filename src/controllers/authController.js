@@ -15,7 +15,7 @@ class AuthController {
       const { user, passwordMatch } = await authService.login(email, password);
 
       if (!user) {
-        return res.status(404).json({ error: 'Usuario no registrado' });
+        return res.status(401).json({ error: 'Usuario inválido' });
       }
 
       if (!passwordMatch) {
