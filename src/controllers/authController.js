@@ -22,6 +22,13 @@ class AuthController {
         return res.status(401).json({ error: 'Contraseña incorrecta' });
       }
 
+
+      // regenerate the session, which is good practice to help
+      // guard against forms of session fixation
+      req.session.regenerate(function (err) {
+        if (err) next(err)
+
+      // store user information in session, typically a user id
       // Guardar usuario en sesión
       req.session.user = {
         id: user.id,
@@ -29,10 +36,16 @@ class AuthController {
         created_at: user.created_at
       };
 
-      res.json({
-        message: 'Login exitoso',
-        user: req.session.user
-      });
+         // save the session before redirection to ensure page
+        // load does not happen before session is saved
+        req.session.save(function (err) {
+          if (err) return next(err)
+            res.json({
+              message: 'Login exitoso',
+              user: req.session.user
+            });
+        })
+      })
     } catch (error) {
       res.status(500).json({
         error: 'Error interno del servidor'
