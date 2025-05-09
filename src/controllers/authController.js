@@ -95,6 +95,9 @@ class AuthController {
 
   async logout(req, res) {
     try {
+      // Log para debugging
+      console.log('Session antes de logout:', req.session);
+      console.log('Cookies recibidas:', req.cookies);
       if (!req.session) {
         return res.status(200).json({ message: 'No hay sesión activa' });
       }

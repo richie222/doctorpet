@@ -1,4 +1,9 @@
 const isAuthenticated = (req, res, next) => {
+  // Logs para debugging
+  console.log('Verificando autenticación:');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session:', req.session);
+  console.log('Cookies:', req.cookies);
   if (!req.session || !req.session.user) {
     console.log('Sesión no encontrada:', req.session); // Para debugging
     return res.status(401).json({ 

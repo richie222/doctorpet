@@ -141,6 +141,16 @@ const configureErrorHandling = (app) => {
   });
 };
 
+app.use((req, res, next) => {
+  console.log('\n--- Nueva Petición ---');
+  console.log('URL:', req.url);
+  console.log('Método:', req.method);
+  console.log('Cookies:', req.cookies);
+  console.log('Session:', req.session);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // 9. Application initialization
 const initializeApp = () => {
   configureMiddleware(app);
