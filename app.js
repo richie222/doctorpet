@@ -32,6 +32,9 @@ const loginLimiter = rateLimit({
 
 // Middleware configurations
 const configureMiddleware = (app) => {
+
+  app.set('trust proxy', 1);
+  
   // View engine setup
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'pug');

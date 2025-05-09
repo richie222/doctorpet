@@ -81,12 +81,27 @@ class AuthController {
   }
 
   async logout(req, res) {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error al cerrar sesión' });
+    try {
+      if (!req.session) {
+        return res.status(200).json({ message: 'No hay sesión activa' });
       }
+  
+      await new Promise((resolve, reject) => {
+        req.session.destroy((err) => {
+          if (err) reject(err);
+          res.clearCookie('connect.sid');
+          resolve();
+        });
+      });
+  
       res.json({ message: 'Sesión cerrada exitosamente' });
-    });
+    } catch (error) {
+      console.error('Error en logout:', error);
+      res.status(500).json({ 
+        error: 'Error al cerrar sesión',
+        details: error.message 
+      });
+    }
   }
 
   async getProfile(req, res) {
