@@ -61,7 +61,7 @@ class AuthController {
         if (req.file) {
           await fs.unlink(req.file.path);
         }
-        return res.status(400).json({ errors: errors.errors[0].msg });
+        return res.status(400).json({ error: errors.errors[0].msg });
       }
 
       const { email, password } = req.body;
