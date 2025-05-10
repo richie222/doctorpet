@@ -22,7 +22,6 @@ class AuthController {
         return res.status(401).json({ error: 'Contraseña incorrecta' });
       }
 
-
       // regenerate the session, which is good practice to help
       // guard against forms of session fixation
       req.session.regenerate(function (err) {
@@ -56,12 +55,13 @@ class AuthController {
   async register(req, res) {
     try {
       const errors = validationResult(req);
+
       if (!errors.isEmpty()) {
         // Si hay un archivo subido, eliminarlo
         if (req.file) {
           await fs.unlink(req.file.path);
         }
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ errors: errors.errors[0].msg });
       }
 
       const { email, password } = req.body;
