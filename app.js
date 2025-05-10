@@ -47,7 +47,8 @@ const configureMiddleware = (app) => {
   // CORS configuration
   const allowedOrigins = [
     'https://6000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev',
-    'https://9000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev'
+    'https://9000-firebase-studio-1746627507940.cluster-f4iwdviaqvc2ct6pgytzw4xqy4.cloudworkstations.dev',
+    'https://testdoctorpetapp.onrender.com'
   ];
 
   app.use(
