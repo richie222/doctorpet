@@ -14,6 +14,7 @@ require('dotenv').config();
 const indexRouter = require('./src/routes/index');
 const dbRouter = require('./src/routes/db');
 const authRouter = require('./src/routes/auth');
+const apisToros = require('./src/routes/apisSoftball');
 
 // 3. Import config
 const { sessionCookie, poolConnection } = require('./src/config/dababase');
@@ -95,6 +96,7 @@ const configureRoutes = (app) => {
   app.use('/', indexRouter);
   app.use('/db', dbRouter);
   app.use('/auth', authRouter);
+  app.use('/api/toros/v1', apisToros);
 };
 
 // 8. Error handling configurations
