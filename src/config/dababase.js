@@ -18,7 +18,13 @@ const poolConnection = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+const poolConnectionToros = new Pool({
+  connectionString: process.env.DATABASE_URL_TOROS,
+  ssl: { rejectUnauthorized: false }
+});
+
 module.exports = {
   sessionCookie,
-  poolConnection
+  poolConnection,
+  poolConnectionToros
 };

@@ -1,13 +1,7 @@
 require('dotenv').config(); // Load environment variables
-
-const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL_TOROS,
-});
-
+const {poolConnectionToros} = require('../config/dababase');
 class torosControllers {
 
     async registerUser (req, res)  {
@@ -24,7 +18,7 @@ class torosControllers {
 
     try {
         // Check if email already exists
-        const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+        const emailCheck = await poolConnectionToros.query('SELECT id FROM users WHERE email = $1', [email]);
         if (emailCheck.rows.length > 0) {
             return res.status(400).json({ message: 'Email ya se encuentra registrado' });
         }
@@ -33,7 +27,7 @@ class torosControllers {
         const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
 
         // Insert the new user into the database
-        const newUser = await pool.query(
+        const newUser = await poolConnectionToros.query(
             'INSERT INTO users (username, email, password, id_team) VALUES ($1, $2, $3, 1) RETURNING id, username, email',
             [username, email, hashedPassword]
         );
@@ -55,7 +49,7 @@ class torosControllers {
 
     try {
         // Find the user by username
-        const userResult = await pool.query('SELECT Id, UserName, password, Email, Rol, SuperUser FROM users WHERE username = $1', [username]);
+        const userResult = await poolConnectionToros.query('SELECT Id, UserName, password, Email, Rol, SuperUser FROM users WHERE username = $1', [username]);
 
         if (userResult.rows.length === 0) {
             return res.status(401).json({ message: 'Usuario no se encuentra registrado.' });
@@ -109,7 +103,7 @@ class torosControllers {
 
         try {
             // Insertar la nueva season en la base de datos
-            const result = await pool.query(
+            const result = await poolConnectionToros.query(
                 'INSERT INTO seasons (name, date_ini) VALUES ($1, $2) RETURNING name, date_ini',
                 [name, date_ini]
             );
@@ -123,7 +117,7 @@ class torosControllers {
 
     async listSeasons (req, res) {
     try {
-        const result = await pool.query('SELECT id, name, date_ini FROM seasons ORDER BY date_ini ASC');
+        const result = await poolConnectionToros.query('SELECT id, name, date_ini FROM seasons ORDER BY date_ini ASC');
         
         res.status(200).json({
             message: 'Seasons retrieved successfully.',
@@ -147,7 +141,7 @@ class torosControllers {
 
         try {
             // Actualizar la season en la base de datos
-            const result = await pool.query(
+            const result = await poolConnectionToros.query(
                 'UPDATE seasons SET name = $1, date_ini = $2 WHERE id = $3 RETURNING id, name, date_ini',
                 [name, date_ini, id]
             );
@@ -190,12 +184,12 @@ class torosControllers {
         // Ordenar por id (más recientes primero)
         query += ` ORDER BY g.id ASC`;
         
-        const result = await pool.query(query, params);
+        const result = await poolConnectionToros.query(query, params);
         
         // Opcional: Obtener información de la temporada si se filtró por id_season
         let seasonInfo = null;
         if (req.query.id_season && result.rows.length > 0) {
-            const seasonResult = await pool.query(
+            const seasonResult = await poolConnectionToros.query(
                 'SELECT name, date_ini FROM seasons WHERE id = $1',
                 [req.query.id_season]
             );
@@ -235,7 +229,7 @@ class torosControllers {
 
     try {
         // Verificar que la temporada existe
-        const seasonCheck = await pool.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
+        const seasonCheck = await poolConnectionToros.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
         if (seasonCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Torneo no encontrado.' });
         }
@@ -244,7 +238,7 @@ class torosControllers {
         const win = team_score > opposing_team_score;
 
         // Insertar el nuevo juego en la base de datos
-        const result = await pool.query(
+        const result = await poolConnectionToros.query(
             `INSERT INTO games 
             (id_season, win, team_score, opposing_team_name, opposing_team_score) 
             VALUES ($1, $2, $3, $4, $5) 
@@ -310,25 +304,25 @@ class torosControllers {
 
     try {
         // Verificar que la temporada existe
-        const seasonCheck = await pool.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
+        const seasonCheck = await poolConnectionToros.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
         if (seasonCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Season not found.' });
         }
 
         // Verificar que el juego existe
-        const gameCheck = await pool.query('SELECT id FROM games WHERE id = $1', [id_game]);
+        const gameCheck = await poolConnectionToros.query('SELECT id FROM games WHERE id = $1', [id_game]);
         if (gameCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Game not found.' });
         }
 
         // Verificar que el jugador existe
-        const playerCheck = await pool.query('SELECT id FROM users WHERE id = $1', [id_player]);
+        const playerCheck = await poolConnectionToros.query('SELECT id FROM users WHERE id = $1', [id_player]);
         if (playerCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Player not found.' });
         }
 
         // Verificar si ya existe un registro para este jugador en este juego
-        const existingCheck = await pool.query(
+        const existingCheck = await poolConnectionToros.query(
             'SELECT id FROM offensive_player_data_games WHERE id_season = $1 AND id_game = $2 AND id_player = $3',
             [id_season, id_game, id_player]
         );
@@ -341,7 +335,7 @@ class torosControllers {
         }
 
         // Insertar el nuevo registro
-        const result = await pool.query(
+        const result = await poolConnectionToros.query(
             `INSERT INTO offensive_player_data_games 
             (id_season, id_game, id_player, vb, hit, "2b", "3b", hr, bb, kk) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
@@ -392,7 +386,7 @@ class torosControllers {
 
     try {
         // Verificar que el registro existe
-        const existingRecord = await pool.query(
+        const existingRecord = await poolConnectionToros.query(
             'SELECT id FROM offensive_player_data_games WHERE id = $1',
             [id]
         );
@@ -402,7 +396,7 @@ class torosControllers {
         }
 
         // Actualizar el registro
-        const result = await pool.query(
+        const result = await poolConnectionToros.query(
             `UPDATE offensive_player_data_games 
              SET vb = $1, hit = $2, "2b" = $3, "3b" = $4, hr = $5, bb = $6, kk = $7, updated_at = CURRENT_TIMESTAMP
              WHERE id = $8 
@@ -468,7 +462,7 @@ class torosControllers {
         query += ` ORDER BY t1.updated_at DESC`;
         
         // Ejecutar la consulta
-        const result = await pool.query(query, params);
+        const result = await poolConnectionToros.query(query, params);
         
         res.status(200).json({
             message: 'Offensive player data retrieved successfully.',
@@ -491,7 +485,7 @@ class torosControllers {
     
     try {
         // Verificar que la temporada existe
-        const seasonCheck = await pool.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
+        const seasonCheck = await poolConnectionToros.query('SELECT id FROM seasons WHERE id = $1', [id_season]);
         if (seasonCheck.rows.length === 0) {
             return res.status(404).json({ message: 'Season not found.' });
         }
@@ -546,10 +540,10 @@ class torosControllers {
             ORDER BY tot_vb DESC, avg DESC
         `;
         
-        const result = await pool.query(query, [id_season]);
+        const result = await poolConnectionToros.query(query, [id_season]);
         
         // Obtener información de la temporada
-        const seasonInfo = await pool.query(
+        const seasonInfo = await poolConnectionToros.query(
             'SELECT id, name, date_ini FROM seasons WHERE id = $1',
             [id_season]
         );
@@ -568,7 +562,7 @@ class torosControllers {
 
     async users (req, res) {
         try {
-            const result = await pool.query('SELECT id, username FROM users ORDER BY username ASC');
+            const result = await poolConnectionToros.query('SELECT id, username FROM users ORDER BY username ASC');
             
             res.status(200).json({
                 message: 'Users retrieved successfully.',

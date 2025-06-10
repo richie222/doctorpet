@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var {config} = require('dotenv');
-var pg = require('pg');
 const {poolConnection} = require('../config/dababase');
 
 config();
