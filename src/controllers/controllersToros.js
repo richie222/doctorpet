@@ -507,7 +507,7 @@ class torosControllers {
                     tot.tot_bb, 
                     tot.tot_k,
                     TO_CHAR(
-                        (tot.tot_hits + tot.tot_2b + tot.tot_3b + tot.tot_hr)::decimal / NULLIF(tot.tot_vb, 0), 
+                        (tot.tot_hits + tot.tot_2b + tot.tot_3b + tot.tot_hr)::decimal / NULLIF(tot.tot_vb_l, 0), 
                         'FM0.000'
                     ) AS avg
                 FROM (
@@ -522,7 +522,8 @@ class torosControllers {
                         SUM(t1."3b") AS tot_3b, 
                         SUM(t1.hr) AS tot_hr, 
                         SUM(t1.bb) AS tot_bb, 
-                        SUM(t1.kk) AS tot_k
+                        SUM(t1.kk) AS tot_k,
+                        SUM(t1.vb - t1.bb) AS tot_vb_l
                     FROM 
                         offensive_player_data_games t1, 
                         users t2, 
